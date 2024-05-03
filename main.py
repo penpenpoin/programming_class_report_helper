@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.font as font
 import os
+import subprocess
+
 class hensuu:
     static_num = 1
 
@@ -14,16 +16,13 @@ def read_cppfile(cppfile):
         data = rf.read()
     return data
 
-#exeファイルを引数ありで実行
+#exeファイルを引数ありで実行(未:引数が出力結果に表示されない)
 def exe_with_arg(exefile,arg):
     print("exeファイルを実行します")
-    arg_list = ""
-    for a in arg:
-        arg_list += a + " "
-    a = os.system(f"echo {arg_list} | {exefile}")
-    print(a)
-    return str(a)
-#課題のテキストファイルを出力(未)
+    a = subprocess.run([exefile],input=arg,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
+    return str(a.stdout)
+
+#課題のテキストファイルを出力
 def make_txtfile(problem_list):
     if problem_list[0][0].get() == "" or problem_list[0][1].get() == "" or problem_list[0][2].get() == "":
         return "入力されていません"
@@ -31,7 +30,7 @@ def make_txtfile(problem_list):
         return "cppファイルが存在しません"
     elif not os.path.isfile(problem_list[0][2].get()):
         return "exeファイルが存在しません"
-
+    print("txtファイルを作成します")
     i = 1
     pro = 0
     while(os.path.isfile(f"課題{i}.txt")):
@@ -41,10 +40,10 @@ def make_txtfile(problem_list):
         for p in problem_list:
             jikkou = 1
             pro += 1
-            wf.write(f"課題{pro}：" + "\n" + "「" + p[1].get() + "」\n")
+            wf.write(f"課題{pro}：" + "\n" + "「" + p[1].get() + "」\n\n")
             wf.write("作成したプログラム：\n" + read_cppfile(p[0].get()) + "\n")
             for j in p[3].get().split():
-                wf.write(f"実行結果{jikkou}：　\n >./a.out \n" + exe_with_arg(p[2].get(),j) + "\n")
+                wf.write(f"実行結果{jikkou}：　\n >./a.out {j}\n" + exe_with_arg(p[2].get(),j) + "\n")
                 jikkou += 1
     return "課題"+str(i)+".txtを作成しました"
 
@@ -53,7 +52,7 @@ def gui():
     root = tk.Tk()
     root.title("課題作成ヘルパー")
     root.geometry("500x300")
-    entry_list = []
+    entry_list = [] #[cpp,問,exe,例(iterable)]
 
     def make_form():
         # Create new widgets
